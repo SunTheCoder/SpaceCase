@@ -45,7 +45,7 @@ Migrate(app, db)
 CORS(app, 
      resources={
          r"/api/*": {
-             "origins": ["http://localhost:5173", "https://spacecase.vercel.app"],
+             "origins": ["https://spacecase.vercel.app"],
              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
              "allow_headers": ["Content-Type", "X-CSRF-Token"],
              "expose_headers": ["Content-Type", "X-CSRF-Token", "Set-Cookie"],
@@ -75,15 +75,14 @@ def after_request(response):
         response.set_cookie(
             'csrf_token',
             generate_csrf(),
-            secure=True if os.environ.get('FLASK_ENV') == 'production' else False,
-            samesite='None' if os.environ.get('FLASK_ENV') == 'production' else None,
-            httponly=False,  # Allow JavaScript access
-            domain=None  # Let the browser set the domain
+            secure=True,
+            samesite='None',
+            httponly=False,
+            domain=None
         )
     
-    # CORS headers
-    response.headers.add('Access-Control-Allow-Origin', 
-                        'https://spacecase.vercel.app' if os.environ.get('FLASK_ENV') == 'production' else 'http://localhost:5173')
+    # CORS headers - only production URL
+    response.headers.add('Access-Control-Allow-Origin', 'https://spacecase.vercel.app')
     response.headers.add('Access-Control-Allow-Credentials', 'true')
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,X-CSRF-Token')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
