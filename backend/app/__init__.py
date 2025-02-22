@@ -42,13 +42,18 @@ Migrate(app, db)
 
 # Application Security
 CORS(app, 
-     resources={r"/api/*": {
-         "origins": ["http://localhost:5173", "https://spacecase.vercel.app"],
-         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-         "allow_headers": ["Content-Type", "X-CSRF-Token"],
-         "expose_headers": ["Content-Type", "X-CSRF-Token"],
-         "supports_credentials": True
-     }})
+     resources={
+         r"/api/*": {
+             "origins": ["http://localhost:5173", "https://spacecase.vercel.app"],
+             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+             "allow_headers": ["Content-Type", "X-CSRF-Token"],
+             "expose_headers": ["Content-Type", "X-CSRF-Token"],
+             "supports_credentials": True
+         },
+         r"/*": {  # Add this to handle static files
+             "origins": "*"
+         }
+     })
 
 
 # Since we are deploying with Docker and Flask,
@@ -104,14 +109,18 @@ def api_help():
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def react_root(path):
-	"""
-	This route will direct to the public directory in our
-	react builds in the production environment for favicon
-	or index.html requests
-	"""
-	if path == 'favicon.ico':
-		return app.send_from_directory('public', 'favicon.ico')
-	return app.send_static_file('index.html')
+    """
+    This route will direct to the public directory in our
+    react builds in the production environment for favicon
+    or index.html requests
+    """
+    try:
+        if path == 'favicon.ico':
+            return app.send_from_directory('public', 'favicon.ico')
+        return app.send_static_file('index.html')
+    except Exception as e:
+        print(f"Error serving static file: {e}")
+        return app.send_static_file('index.html')
 
 
 @app.errorhandler(404)

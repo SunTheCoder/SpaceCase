@@ -12,12 +12,18 @@ ARG SECRET_KEY
 
 WORKDIR /var/www
 
+# Make sure the static directory exists
+RUN mkdir -p frontend/dist
+
 COPY requirements.txt .
 
 RUN pip install -r requirements.txt
 RUN pip install psycopg2
 
 COPY . .
+
+# Verify the static files exist
+RUN ls -la frontend/dist/
 
 RUN flask db upgrade
 RUN flask seed all
