@@ -81,12 +81,7 @@ def after_request(response):
             domain=None
         )
     
-    # CORS headers - only production URL
-    response.headers.add('Access-Control-Allow-Origin', 'https://spacecase.vercel.app')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,X-CSRF-Token')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-    
+    # Remove manual CORS headers - let Flask-CORS handle it
     return response
 
 
