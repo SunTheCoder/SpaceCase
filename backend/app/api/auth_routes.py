@@ -77,50 +77,22 @@ def logout():
 
 @auth_routes.route('/signup', methods=['POST'])
 def sign_up():
-	"""
-	Creates a new user and logs them in
-	"""
-	print("Signup request received")
-	data = request.get_json()
-	print("Request data:", data)
-	print("All cookies:", request.cookies)
-	print("All headers:", dict(request.headers))
-	print("CSRF token from cookie:", request.cookies.get('csrf_token'))
-	print("CSRF token from header:", request.headers.get('X-CSRF-Token'))
-	print("Form data:", request.form)
-	
-	form = SignUpForm()
-	csrf_token = request.cookies.get('csrf_token')
-	print("Setting CSRF token:", csrf_token)
-	form['csrf_token'].data = csrf_token
-	
-	# Manually populate form with JSON data
-	form.username.data = data.get('username')
-	form.email.data = data.get('email')
-	form.password.data = data.get('password')
-	
-	if not form.validate():
-		print("Form validation failed:", form.errors)
-		return {
-			'errors': form.errors,
-			'message': 'Validation failed',
-			'data_received': data
-		}, 400
-		
-	try:
-		user = User(
-			username=form.data['username'],
-			email=form.data['email'],
-			password=form.data['password']
-		)
-		db.session.add(user)
-		db.session.commit()
-		login_user(user)
-		return user.to_dict()
-	except Exception as e:
-		print("Error creating user:", str(e))
-		db.session.rollback()
-		return {'errors': {'server': str(e)}}, 500
+    """
+    Creates a new user and logs them in
+    """
+    form = SignUpForm()
+    form['csrf_token'].data = request.cookies['csrf_token']
+    if form.validate_on_submit():
+        user = User(
+            username=form.data['username'],
+            email=form.data['email'],
+            password=form.data['password']
+        )
+        db.session.add(user)
+        db.session.commit()
+        login_user(user)
+        return user.to_dict()
+    return form.errors, 401
 
 
 

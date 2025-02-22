@@ -64,18 +64,6 @@ export const thunkLogin = (credentials) => async (dispatch) => {
 
 export const thunkSignup = (user) => async (dispatch) => {
   try {
-    // First, get a new CSRF token
-    const csrfResponse = await fetch(`${API_URL}/api/auth/csrf/restore`, {
-      credentials: 'include'
-    });
-    if (!csrfResponse.ok) {
-      throw new Error('Failed to get CSRF token');
-    }
-    
-    // Wait a moment for the cookie to be set
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    // Then make the signup request
     const response = await fetch(`${API_URL}/api/auth/signup`, {
       method: 'POST',
       headers: { 
@@ -91,16 +79,8 @@ export const thunkSignup = (user) => async (dispatch) => {
       dispatch(setUser(data))
       return null
     } else {
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        const errorMessages = await response.json()
-        console.error('Signup error response:', errorMessages)
-        return errorMessages
-      } else {
-        const text = await response.text()
-        console.error('Unexpected response:', text)
-        return { server: 'Server returned an unexpected response' }
-      }
+      const errorMessages = await response.json()
+      return errorMessages
     }
   } catch (error) {
     console.error('Signup error:', error)
