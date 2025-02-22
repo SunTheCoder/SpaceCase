@@ -1,8 +1,9 @@
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 from flask_login import current_user, login_user, logout_user
 from flask_wtf.csrf import generate_csrf
 from app.forms import LoginForm, SignUpForm
 from app.models import User, db
+import os
 
 auth_routes = Blueprint('auth', __name__)
 
@@ -125,5 +126,16 @@ def get_csrf():
     Get a new CSRF token without requiring authentication
     """
     token = generate_csrf()
-    response = {'status': 'ok'}
+    response = jsonify({'status': 'ok'})
+    
+    # Explicitly set the cookie in the response
+    response.set_cookie(
+        'csrf_token',
+        token,
+        secure=True if os.environ.get('FLASK_ENV') == 'production' else False,
+        samesite='None' if os.environ.get('FLASK_ENV') == 'production' else None,
+        httponly=False,
+        domain='.onrender.com' if os.environ.get('FLASK_ENV') == 'production' else None
+    )
+    
     return response
