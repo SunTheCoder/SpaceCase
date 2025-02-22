@@ -39,7 +39,8 @@ async function ensureCsrfToken() {
     });
     
     if (response.ok) {
-      token = getCookie('csrf_token');
+      const data = await response.json();
+      token = data.csrf_token;
       console.log('New token received:', token);
     } else {
       console.error('Failed to get CSRF token');

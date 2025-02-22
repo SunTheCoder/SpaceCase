@@ -112,16 +112,21 @@ def get_csrf():
     Get a new CSRF token without requiring authentication
     """
     token = generate_csrf()
-    response = jsonify({'status': 'ok'})
     
-    # Explicitly set the cookie in the response
+    # Return token in both cookie and response body
+    response = jsonify({
+        'csrf_token': token,
+        'status': 'ok'
+    })
+    
+    # Set cookie with appropriate settings
     response.set_cookie(
         'csrf_token',
         token,
-        secure=True if os.environ.get('FLASK_ENV') == 'production' else False,
-        samesite='None' if os.environ.get('FLASK_ENV') == 'production' else None,
+        secure=True,
+        samesite='None',
         httponly=False,
-        domain='.onrender.com' if os.environ.get('FLASK_ENV') == 'production' else None
+        domain=None
     )
     
     return response
