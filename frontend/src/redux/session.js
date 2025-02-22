@@ -29,20 +29,24 @@ function getCookie(name) {
 // Add this function at the top with other utility functions
 async function ensureCsrfToken() {
   console.log('Checking for CSRF token...');
-  const existingToken = getCookie('csrf_token');
-  console.log('Existing token:', existingToken);
+  let token = getCookie('csrf_token');
+  console.log('Initial token:', token);
   
-  if (!existingToken) {
+  if (!token) {
     console.log('No token found, fetching new one...');
-    const response = await fetch(`${API_URL}/api/auth/`, {
+    const response = await fetch(`${API_URL}/api/auth/csrf`, {
       credentials: 'include'
     });
-    console.log('Auth response status:', response.status);
+    
+    if (response.ok) {
+      token = getCookie('csrf_token');
+      console.log('New token received:', token);
+    } else {
+      console.error('Failed to get CSRF token');
+    }
   }
   
-  const finalToken = getCookie('csrf_token');
-  console.log('Final token:', finalToken);
-  return finalToken;
+  return token;
 }
 
 export const thunkAuthenticate = () => async (dispatch) => {
@@ -83,12 +87,12 @@ export const thunkLogin = (credentials) => async (dispatch) => {
 
 export const thunkSignup = (user) => async (dispatch) => {
   try {
-    console.log('Starting signup process...');
-    console.log('User data:', user);
-    
     const token = await ensureCsrfToken();
-    console.log('Got CSRF token:', token);
+    if (!token) {
+      throw new Error('Could not get CSRF token');
+    }
     
+    console.log('Making signup request with token:', token);
     const response = await fetch(`${API_URL}/api/auth/signup`, {
       method: 'POST',
       headers: { 

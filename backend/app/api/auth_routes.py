@@ -83,18 +83,16 @@ def sign_up():
     print("\n=== Debug Info ===")
     print("Request Method:", request.method)
     print("Content-Type:", request.headers.get('Content-Type'))
-    print("All Headers:", dict(request.headers))
-    print("All Cookies:", dict(request.cookies))
     print("CSRF Token in cookie:", request.cookies.get('csrf_token'))
     print("CSRF Token in header:", request.headers.get('X-CSRF-Token'))
-    print("Form Data:", request.form)
-    print("JSON Data:", request.get_json())
-    print("=================\n")
+    
+    if not request.cookies.get('csrf_token'):
+        return {'errors': {'csrf': 'No CSRF token in Cookie'}}, 400
+    if not request.headers.get('X-CSRF-Token'):
+        return {'errors': {'csrf': 'No CSRF token in Headers'}}, 400
     
     form = SignUpForm()
-    csrf_token = request.cookies.get('csrf_token')
-    print(f"Using CSRF token: {csrf_token}")
-    form['csrf_token'].data = csrf_token
+    form['csrf_token'].data = request.cookies.get('csrf_token')
     
     if form.validate_on_submit():
         print("Form validated successfully")
@@ -121,9 +119,11 @@ def unauthorized():
 	"""
 	return {'errors': {'message': 'Unauthorized'}}, 401
 
-@auth_routes.route('/csrf/restore', methods=['GET'])
-def restore_csrf():
+@auth_routes.route('/csrf', methods=['GET'])
+def get_csrf():
     """
-    Endpoint to get a new CSRF token
+    Get a new CSRF token without requiring authentication
     """
-    return {'csrf_token': generate_csrf()}
+    token = generate_csrf()
+    response = {'status': 'ok'}
+    return response
