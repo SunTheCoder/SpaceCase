@@ -64,6 +64,12 @@ export const thunkLogin = (credentials) => async (dispatch) => {
 
 export const thunkSignup = (user) => async (dispatch) => {
   try {
+    // First, get the CSRF token
+    await fetch(`${API_URL}/api/auth/`, {
+      credentials: 'include'
+    });
+
+    // Then make the signup request
     const response = await fetch(`${API_URL}/api/auth/signup`, {
       method: 'POST',
       headers: { 

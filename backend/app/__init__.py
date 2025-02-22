@@ -78,7 +78,7 @@ def after_request(response):
         generate_csrf(),
         secure=True if os.environ.get('FLASK_ENV') == 'production' else False,
         samesite='None' if os.environ.get('FLASK_ENV') == 'production' else None,
-        httponly=True,
+        httponly=False,
         domain='.onrender.com' if os.environ.get('FLASK_ENV') == 'production' else None
     )
     
