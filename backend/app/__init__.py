@@ -48,7 +48,6 @@ CORS(app,
              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
              "allow_headers": ["Content-Type", "X-CSRF-Token"],
              "expose_headers": ["Content-Type", "X-CSRF-Token"],
-             "supports_credentials": True
          },
          r"/*": {  # Add this to handle static files
              "origins": "*"
