@@ -49,9 +49,7 @@ CORS(app,
              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
              "allow_headers": ["Content-Type", "X-CSRF-Token"],
              "expose_headers": ["Content-Type", "X-CSRF-Token", "Set-Cookie"],
-         },
-         r"/*": {  # Add this to handle static files
-             "origins": "*"
+             "supports_credentials": True
          }
      })
 
@@ -73,16 +71,19 @@ def https_redirect():
 @app.after_request
 def after_request(response):
     # CSRF token
-    response.set_cookie(
-        'csrf_token',
-        generate_csrf(),
-        secure=True if os.environ.get('FLASK_ENV') == 'production' else False,
-        samesite='None' if os.environ.get('FLASK_ENV') == 'production' else None,
-        httponly=False,
-        domain='.onrender.com' if os.environ.get('FLASK_ENV') == 'production' else None
-    )
+    if 'csrf_token' not in request.cookies:
+        response.set_cookie(
+            'csrf_token',
+            generate_csrf(),
+            secure=True if os.environ.get('FLASK_ENV') == 'production' else False,
+            samesite='None' if os.environ.get('FLASK_ENV') == 'production' else None,
+            httponly=False,  # Allow JavaScript access
+            domain=None  # Let the browser set the domain
+        )
     
     # CORS headers
+    response.headers.add('Access-Control-Allow-Origin', 
+                        'https://spacecase.vercel.app' if os.environ.get('FLASK_ENV') == 'production' else 'http://localhost:5173')
     response.headers.add('Access-Control-Allow-Credentials', 'true')
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,X-CSRF-Token')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')

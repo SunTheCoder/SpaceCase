@@ -81,22 +81,10 @@ def sign_up():
     """
     Creates a new user and logs them in
     """
-    print("\n=== Debug Info ===")
-    print("Request Method:", request.method)
-    print("Content-Type:", request.headers.get('Content-Type'))
-    print("CSRF Token in cookie:", request.cookies.get('csrf_token'))
-    print("CSRF Token in header:", request.headers.get('X-CSRF-Token'))
-    
-    if not request.cookies.get('csrf_token'):
-        return {'errors': {'csrf': 'No CSRF token in Cookie'}}, 400
-    if not request.headers.get('X-CSRF-Token'):
-        return {'errors': {'csrf': 'No CSRF token in Headers'}}, 400
-    
     form = SignUpForm()
     form['csrf_token'].data = request.cookies.get('csrf_token')
     
     if form.validate_on_submit():
-        print("Form validated successfully")
         user = User(
             username=form.data['username'],
             email=form.data['email'],
@@ -107,8 +95,6 @@ def sign_up():
         login_user(user)
         return user.to_dict()
     
-    print("Form validation failed")
-    print("Form errors:", form.errors)
     return form.errors, 400
 
 
