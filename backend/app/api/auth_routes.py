@@ -81,21 +81,35 @@ def sign_up():
     """
     Creates a new user and logs them in
     """
-    form = SignUpForm()
-    form['csrf_token'].data = request.cookies.get('csrf_token')
-    
-    if form.validate_on_submit():
-        user = User(
-            username=form.data['username'],
-            email=form.data['email'],
-            password=form.data['password']
-        )
-        db.session.add(user)
-        db.session.commit()
-        login_user(user)
-        return user.to_dict()
-    
-    return form.errors, 400
+    try:
+        # Get CSRF token from header and cookie
+        header_token = request.headers.get('X-CSRF-Token')
+        cookie_token = request.cookies.get('csrf_token')
+        
+        print("Header token:", header_token)
+        print("Cookie token:", cookie_token)
+        
+        # Manually validate CSRF token
+        form = SignUpForm()
+        form['csrf_token'].data = header_token
+        
+        if form.validate_on_submit():
+            user = User(
+                username=form.data['username'],
+                email=form.data['email'],
+                password=form.data['password']
+            )
+            db.session.add(user)
+            db.session.commit()
+            login_user(user)
+            return user.to_dict()
+        
+        print("Form validation errors:", form.errors)
+        return jsonify(form.errors), 400
+        
+    except Exception as e:
+        print("Signup error:", str(e))
+        return jsonify({'error': 'Invalid request'}), 400
 
 
 

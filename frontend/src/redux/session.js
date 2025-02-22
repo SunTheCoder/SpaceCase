@@ -104,33 +104,24 @@ export const thunkSignup = (user) => async (dispatch) => {
       credentials: 'include'
     });
     
-    console.log('Signup response status:', response.status);
-    console.log('Response headers:', Object.fromEntries(response.headers));
-
     if (response.ok) {
       const data = await response.json();
-      console.log('Signup successful:', data);
       dispatch(setUser(data));
       return null;
     } else {
-      try {
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const errorData = await response.json();
+        return errorData;
+      } else {
         const text = await response.text();
-        console.log('Error response text:', text);
-        try {
-          const errorMessages = JSON.parse(text);
-          return errorMessages;
-        } catch (e) {
-          console.error('Failed to parse error response:', e);
-          return { server: text };
-        }
-      } catch (e) {
-        console.error('Error reading response:', e);
-        return { server: 'Server returned an invalid response' };
+        console.error('Non-JSON response:', text);
+        return { error: 'Invalid server response' };
       }
     }
   } catch (error) {
     console.error('Signup error:', error);
-    return { server: 'Something went wrong. Please try again' };
+    return { error: error.message };
   }
 }
 
