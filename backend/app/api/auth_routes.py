@@ -85,9 +85,14 @@ def sign_up():
 	print("Request data:", data)
 	print("All cookies:", request.cookies)
 	print("All headers:", dict(request.headers))
+	print("CSRF token from cookie:", request.cookies.get('csrf_token'))
+	print("CSRF token from header:", request.headers.get('X-CSRF-Token'))
+	print("Form data:", request.form)
 	
 	form = SignUpForm()
-	form['csrf_token'].data = request.cookies.get('csrf_token')
+	csrf_token = request.cookies.get('csrf_token')
+	print("Setting CSRF token:", csrf_token)
+	form['csrf_token'].data = csrf_token
 	
 	# Manually populate form with JSON data
 	form.username.data = data.get('username')
@@ -125,3 +130,10 @@ def unauthorized():
 	Returns unauthorized JSON when flask-login authentication fails
 	"""
 	return {'errors': {'message': 'Unauthorized'}}, 401
+
+@auth_routes.route('/csrf/restore', methods=['GET'])
+def restore_csrf():
+    """
+    Endpoint to get a new CSRF token
+    """
+    return {'csrf_token': generate_csrf()}

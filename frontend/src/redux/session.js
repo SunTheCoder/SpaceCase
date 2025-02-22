@@ -64,10 +64,16 @@ export const thunkLogin = (credentials) => async (dispatch) => {
 
 export const thunkSignup = (user) => async (dispatch) => {
   try {
-    // First, get the CSRF token
-    await fetch(`${API_URL}/api/auth/`, {
+    // First, get a new CSRF token
+    const csrfResponse = await fetch(`${API_URL}/api/auth/csrf/restore`, {
       credentials: 'include'
     });
+    if (!csrfResponse.ok) {
+      throw new Error('Failed to get CSRF token');
+    }
+    
+    // Wait a moment for the cookie to be set
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     // Then make the signup request
     const response = await fetch(`${API_URL}/api/auth/signup`, {
