@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_login import current_user, login_user, logout_user
-from flask_wtf.csrf import generate_csrf
+from flask_wtf.csrf import generate_csrf, validate_csrf
 from app.forms import LoginForm, SignUpForm
 from app.models import User, db
 import os
@@ -82,30 +82,38 @@ def sign_up():
     Creates a new user and logs them in
     """
     try:
-        # Get CSRF token from header and cookie
+        data = request.get_json()
         header_token = request.headers.get('X-CSRF-Token')
         cookie_token = request.cookies.get('csrf_token')
         
         print("Header token:", header_token)
         print("Cookie token:", cookie_token)
         
-        # Manually validate CSRF token
-        form = SignUpForm()
-        form['csrf_token'].data = header_token
-        
-        if form.validate_on_submit():
-            user = User(
-                username=form.data['username'],
-                email=form.data['email'],
-                password=form.data['password']
-            )
-            db.session.add(user)
-            db.session.commit()
-            login_user(user)
-            return user.to_dict()
-        
-        print("Form validation errors:", form.errors)
-        return jsonify(form.errors), 400
+        # Custom CSRF validation
+        if not header_token or not cookie_token or header_token != cookie_token:
+            return jsonify({'error': 'Invalid CSRF token'}), 400
+            
+        # Validate form data
+        if not data.get('email') or not data.get('username') or not data.get('password'):
+            return jsonify({'error': 'Missing required fields'}), 400
+            
+        # Check if user exists
+        if User.query.filter(User.email == data['email']).first():
+            return jsonify({'error': 'Email already exists'}), 400
+            
+        if User.query.filter(User.username == data['username']).first():
+            return jsonify({'error': 'Username already exists'}), 400
+            
+        # Create user
+        user = User(
+            username=data['username'],
+            email=data['email'],
+            password=data['password']
+        )
+        db.session.add(user)
+        db.session.commit()
+        login_user(user)
+        return jsonify(user.to_dict())
         
     except Exception as e:
         print("Signup error:", str(e))

@@ -18,7 +18,6 @@ from .seeds import seed_commands
 load_dotenv()  # Load environment variables from .env
 
 app = Flask(__name__, static_folder='../../frontend/dist/', static_url_path='/')
-csrf = CSRFProtect(app)
 
 # Setup login manager
 login = LoginManager(app)
