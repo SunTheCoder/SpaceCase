@@ -26,10 +26,20 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <MetaMaskProvider
       sdkOptions={{
         dappMetadata: {
-          name: 'Your DApp Name',
+          name: 'SpaceCase',
           url: window.location.href,
         },
-        alchemyAPIKey: import.meta.env.VITE_ALCHEMY_API_KEY, // Correctly accessing the Alchemy API key
+        checkInstallationImmediately: false,
+        useDeeplink: false,
+        alchemyAPIKey: import.meta.env.VITE_ALCHEMY_API_KEY,
+        _sdkSettings: {
+          enableAnalytics: false,
+          logging: {
+            developerMode: false,
+          },
+          checkInstallationImmediately: false,
+          useDeeplink: false,
+        }
       }}
     >
       <ReduxProvider store={store}>
