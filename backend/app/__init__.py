@@ -42,7 +42,12 @@ Migrate(app, db)
 
 # Application Security
 CORS(app, 
-     resources={r"/api/*": {"origins": ["http://localhost:5173", "https://spacecase.vercel.app"]}},
+     resources={r"/api/*": {
+         "origins": ["http://localhost:5173", "https://spacecase.vercel.app"],
+         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+         "allow_headers": ["Content-Type", "X-CSRF-Token"],
+         "expose_headers": ["Content-Type", "X-CSRF-Token"],
+     }},
      supports_credentials=True)
 
 
@@ -70,6 +75,14 @@ def inject_csrf_token(response):
 		httponly=True,
 	)
 	return response
+
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,X-CSRF-Token')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
 
 
 @app.route('/api/docs')
