@@ -41,7 +41,9 @@ db.init_app(app)
 Migrate(app, db)
 
 # Application Security
-CORS(app, resources={r'/*': {'origins': '*'}})
+CORS(app, 
+     resources={r"/api/*": {"origins": ["http://localhost:5173", "https://spacecase.vercel.app"]}},
+     supports_credentials=True)
 
 
 # Since we are deploying with Docker and Flask,

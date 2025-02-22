@@ -19,9 +19,17 @@ const removeUser = () => ({
   type: REMOVE_USER,
 })
 
+// Add this helper function to get CSRF token from cookies
+function getCookie(name) {
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop().split(';').shift()
+}
 
 export const thunkAuthenticate = () => async (dispatch) => {
-  const response = await fetch(`${API_URL}/api/auth/`)
+  const response = await fetch(`${API_URL}/api/auth/`, {
+    credentials: 'include'
+  })
   if (response.ok) {
     const data = await response.json()
     if (data.errors) {
@@ -35,8 +43,12 @@ export const thunkAuthenticate = () => async (dispatch) => {
 export const thunkLogin = (credentials) => async (dispatch) => {
   const response = await fetch(`${API_URL}/api/auth/login`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'X-CSRF-Token': getCookie('csrf_token')
+    },
     body: JSON.stringify(credentials),
+    credentials: 'include'
   })
 
   if (response.ok) {
@@ -51,19 +63,35 @@ export const thunkLogin = (credentials) => async (dispatch) => {
 }
 
 export const thunkSignup = (user) => async (dispatch) => {
-  const response = await fetch(`${API_URL}/api/auth/signup`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(user),
-  })
+  try {
+    const response = await fetch(`${API_URL}/api/auth/signup`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': getCookie('csrf_token')
+      },
+      body: JSON.stringify(user),
+      credentials: 'include'
+    })
 
-  if (response.ok) {
-    const data = await response.json()
-    dispatch(setUser(data))
-  } else if (response.status < 500) {
-    const errorMessages = await response.json()
-    return errorMessages
-  } else {
+    if (response.ok) {
+      const data = await response.json()
+      dispatch(setUser(data))
+      return null
+    } else {
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const errorMessages = await response.json()
+        console.error('Signup error response:', errorMessages)
+        return errorMessages
+      } else {
+        const text = await response.text()
+        console.error('Unexpected response:', text)
+        return { server: 'Server returned an unexpected response' }
+      }
+    }
+  } catch (error) {
+    console.error('Signup error:', error)
     return { server: 'Something went wrong. Please try again' }
   }
 }
@@ -74,8 +102,10 @@ export const thunkUpdateUser = (walletAddress) => async (dispatch) => {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        'X-CSRF-Token': getCookie('csrf_token')
       },
       body: JSON.stringify({ wallet_address: walletAddress }),
+      credentials: 'include'
     });
 
     if (response.ok) {
@@ -95,7 +125,9 @@ export const thunkUpdateUser = (walletAddress) => async (dispatch) => {
 
 
 export const thunkLogout = () => async (dispatch) => {
-  await fetch(`${API_URL}/api/auth/logout`)
+  await fetch(`${API_URL}/api/auth/logout`, {
+    credentials: 'include'
+  })
   dispatch(removeUser())
 }
 
