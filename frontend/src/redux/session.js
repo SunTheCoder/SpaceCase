@@ -26,6 +26,25 @@ function getCookie(name) {
   if (parts.length === 2) return parts.pop().split(';').shift()
 }
 
+// Add this function at the top with other utility functions
+async function ensureCsrfToken() {
+  console.log('Checking for CSRF token...');
+  const existingToken = getCookie('csrf_token');
+  console.log('Existing token:', existingToken);
+  
+  if (!existingToken) {
+    console.log('No token found, fetching new one...');
+    const response = await fetch(`${API_URL}/api/auth/`, {
+      credentials: 'include'
+    });
+    console.log('Auth response status:', response.status);
+  }
+  
+  const finalToken = getCookie('csrf_token');
+  console.log('Final token:', finalToken);
+  return finalToken;
+}
+
 export const thunkAuthenticate = () => async (dispatch) => {
   const response = await fetch(`${API_URL}/api/auth/`, {
     credentials: 'include'
@@ -64,32 +83,49 @@ export const thunkLogin = (credentials) => async (dispatch) => {
 
 export const thunkSignup = (user) => async (dispatch) => {
   try {
+    console.log('Starting signup process...');
+    console.log('User data:', user);
+    
+    const token = await ensureCsrfToken();
+    console.log('Got CSRF token:', token);
+    
     const response = await fetch(`${API_URL}/api/auth/signup`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
-        'X-CSRF-Token': getCookie('csrf_token')
+        'X-CSRF-Token': token
       },
       body: JSON.stringify(user),
       credentials: 'include'
-    })
+    });
+    
+    console.log('Signup response status:', response.status);
+    console.log('Response headers:', Object.fromEntries(response.headers));
 
     if (response.ok) {
-      const data = await response.json()
-      dispatch(setUser(data))
-      return null
+      const data = await response.json();
+      console.log('Signup successful:', data);
+      dispatch(setUser(data));
+      return null;
     } else {
       try {
-        const errorMessages = await response.json()
-        return errorMessages
+        const text = await response.text();
+        console.log('Error response text:', text);
+        try {
+          const errorMessages = JSON.parse(text);
+          return errorMessages;
+        } catch (e) {
+          console.error('Failed to parse error response:', e);
+          return { server: text };
+        }
       } catch (e) {
-        console.error('Error parsing response:', e)
-        return { server: 'Server returned an invalid response' }
+        console.error('Error reading response:', e);
+        return { server: 'Server returned an invalid response' };
       }
     }
   } catch (error) {
-    console.error('Signup error:', error)
-    return { server: 'Something went wrong. Please try again' }
+    console.error('Signup error:', error);
+    return { server: 'Something went wrong. Please try again' };
   }
 }
 

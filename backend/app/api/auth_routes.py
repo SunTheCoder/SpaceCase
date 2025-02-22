@@ -80,17 +80,24 @@ def sign_up():
     """
     Creates a new user and logs them in
     """
-    data = request.get_json()
-    form = SignUpForm()
-    form['csrf_token'].data = request.cookies['csrf_token']
+    print("\n=== Debug Info ===")
+    print("Request Method:", request.method)
+    print("Content-Type:", request.headers.get('Content-Type'))
+    print("All Headers:", dict(request.headers))
+    print("All Cookies:", dict(request.cookies))
+    print("CSRF Token in cookie:", request.cookies.get('csrf_token'))
+    print("CSRF Token in header:", request.headers.get('X-CSRF-Token'))
+    print("Form Data:", request.form)
+    print("JSON Data:", request.get_json())
+    print("=================\n")
     
-    # Manually populate form data from JSON
-    if data:
-        form.username.data = data.get('username')
-        form.email.data = data.get('email')
-        form.password.data = data.get('password')
+    form = SignUpForm()
+    csrf_token = request.cookies.get('csrf_token')
+    print(f"Using CSRF token: {csrf_token}")
+    form['csrf_token'].data = csrf_token
     
     if form.validate_on_submit():
+        print("Form validated successfully")
         user = User(
             username=form.data['username'],
             email=form.data['email'],
@@ -100,7 +107,10 @@ def sign_up():
         db.session.commit()
         login_user(user)
         return user.to_dict()
-    return form.errors, 400  # Changed from 401 to 400 to match the error
+    
+    print("Form validation failed")
+    print("Form errors:", form.errors)
+    return form.errors, 400
 
 
 
