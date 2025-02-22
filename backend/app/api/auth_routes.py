@@ -1,6 +1,6 @@
 from flask import Blueprint, request
 from flask_login import current_user, login_user, logout_user
-
+from flask_wtf.csrf import generate_csrf
 from app.forms import LoginForm, SignUpForm
 from app.models import User, db
 
