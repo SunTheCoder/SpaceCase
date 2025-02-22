@@ -82,6 +82,12 @@ def sign_up():
     Creates a new user and logs them in
     """
     try:
+        # Initialize database if tables don't exist
+        try:
+            db.create_all()
+        except Exception as e:
+            print("Database initialization error:", str(e))
+        
         data = request.get_json()
         header_token = request.headers.get('X-CSRF-Token')
         cookie_token = request.cookies.get('csrf_token')

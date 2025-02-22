@@ -40,6 +40,13 @@ app.register_blueprint(upload_routes, url_prefix='/api/uploads')
 db.init_app(app)
 Migrate(app, db)
 
+# After db.init_app(app)
+with app.app_context():
+    try:
+        db.create_all()
+    except Exception as e:
+        print("Database initialization error:", str(e))
+
 # Application Security
 CORS(app, 
      resources={
