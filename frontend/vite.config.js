@@ -21,4 +21,25 @@ export default defineConfig((mode) => ({
     },
     host: '0.0.0.0',
   },
+  build: {
+    chunkSizeWarningLimit: 1600,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('@chakra-ui')) {
+              return 'vendor_chakra'
+            }
+            if (id.includes('react')) {
+              return 'vendor_react'
+            }
+            if (id.includes('ethers')) {
+              return 'vendor_ethers'
+            }
+            return 'vendor' // all other node_modules
+          }
+        }
+      }
+    }
+  }
 }))
