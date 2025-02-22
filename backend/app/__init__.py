@@ -47,8 +47,8 @@ CORS(app,
          "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
          "allow_headers": ["Content-Type", "X-CSRF-Token"],
          "expose_headers": ["Content-Type", "X-CSRF-Token"],
-     }},
-     supports_credentials=True)
+         "supports_credentials": True
+     }})
 
 
 # Since we are deploying with Docker and Flask,
@@ -66,22 +66,21 @@ def https_redirect():
 
 
 @app.after_request
-def inject_csrf_token(response):
-	response.set_cookie(
-		'csrf_token',
-		generate_csrf(),
-		secure=True if os.environ.get('FLASK_ENV') == 'production' else False,
-		samesite='Strict' if os.environ.get('FLASK_ENV') == 'production' else None,
-		httponly=True,
-	)
-	return response
-
-
-@app.after_request
 def after_request(response):
+    # CSRF token
+    response.set_cookie(
+        'csrf_token',
+        generate_csrf(),
+        secure=True if os.environ.get('FLASK_ENV') == 'production' else False,
+        samesite='Strict' if os.environ.get('FLASK_ENV') == 'production' else None,
+        httponly=True,
+    )
+    
+    # CORS headers
     response.headers.add('Access-Control-Allow-Credentials', 'true')
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,X-CSRF-Token')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    
     return response
 
 
