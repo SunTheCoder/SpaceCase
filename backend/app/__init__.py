@@ -18,6 +18,7 @@ from .seeds import seed_commands
 load_dotenv()  # Load environment variables from .env
 
 app = Flask(__name__, static_folder='../../frontend/dist/', static_url_path='/')
+csrf = CSRFProtect(app)
 
 # Setup login manager
 login = LoginManager(app)
@@ -47,7 +48,7 @@ CORS(app,
              "origins": ["http://localhost:5173", "https://spacecase.vercel.app"],
              "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
              "allow_headers": ["Content-Type", "X-CSRF-Token"],
-             "expose_headers": ["Content-Type", "X-CSRF-Token"],
+             "expose_headers": ["Content-Type", "X-CSRF-Token", "Set-Cookie"],
          },
          r"/*": {  # Add this to handle static files
              "origins": "*"
@@ -76,8 +77,9 @@ def after_request(response):
         'csrf_token',
         generate_csrf(),
         secure=True if os.environ.get('FLASK_ENV') == 'production' else False,
-        samesite='Strict' if os.environ.get('FLASK_ENV') == 'production' else None,
+        samesite='None' if os.environ.get('FLASK_ENV') == 'production' else None,
         httponly=True,
+        domain='.onrender.com' if os.environ.get('FLASK_ENV') == 'production' else None
     )
     
     # CORS headers
