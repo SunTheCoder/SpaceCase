@@ -22,9 +22,13 @@ RUN pip install psycopg2
 
 COPY . .
 
-# Verify the static files exist
-RUN ls -la frontend/dist/
+# Create a script to handle database setup
+RUN echo '#!/bin/sh\n\
+flask db upgrade\n\
+flask seed all\n\
+gunicorn "app:app"' > /var/www/start.sh
 
-RUN flask db upgrade
-RUN flask seed all
-CMD gunicorn "app:app" 
+RUN chmod +x /var/www/start.sh
+
+# Use the script as the entry point
+CMD ["/var/www/start.sh"] 
