@@ -80,8 +80,16 @@ def sign_up():
     """
     Creates a new user and logs them in
     """
+    data = request.get_json()
     form = SignUpForm()
     form['csrf_token'].data = request.cookies['csrf_token']
+    
+    # Manually populate form data from JSON
+    if data:
+        form.username.data = data.get('username')
+        form.email.data = data.get('email')
+        form.password.data = data.get('password')
+    
     if form.validate_on_submit():
         user = User(
             username=form.data['username'],
@@ -92,7 +100,7 @@ def sign_up():
         db.session.commit()
         login_user(user)
         return user.to_dict()
-    return form.errors, 401
+    return form.errors, 400  # Changed from 401 to 400 to match the error
 
 
 

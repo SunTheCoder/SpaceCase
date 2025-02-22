@@ -79,8 +79,13 @@ export const thunkSignup = (user) => async (dispatch) => {
       dispatch(setUser(data))
       return null
     } else {
-      const errorMessages = await response.json()
-      return errorMessages
+      try {
+        const errorMessages = await response.json()
+        return errorMessages
+      } catch (e) {
+        console.error('Error parsing response:', e)
+        return { server: 'Server returned an invalid response' }
+      }
     }
   } catch (error) {
     console.error('Signup error:', error)
