@@ -86,12 +86,22 @@ def sign_up():
         header_token = request.headers.get('X-CSRF-Token')
         cookie_token = request.cookies.get('csrf_token')
         
+        print("\n=== Debug Info ===")
+        print("Request Method:", request.method)
+        print("Headers:", dict(request.headers))
+        print("Cookies:", dict(request.cookies))
+        print("Data:", data)
         print("Header token:", header_token)
         print("Cookie token:", cookie_token)
+        print("=================\n")
         
         # Custom CSRF validation
         if not header_token or not cookie_token or header_token != cookie_token:
-            return jsonify({'error': 'Invalid CSRF token'}), 400
+            return jsonify({
+                'error': 'Invalid CSRF token',
+                'header_token': header_token,
+                'cookie_token': cookie_token
+            }), 400
             
         # Validate form data
         if not data.get('email') or not data.get('username') or not data.get('password'):
