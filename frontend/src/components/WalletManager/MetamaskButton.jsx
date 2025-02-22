@@ -7,7 +7,7 @@ const MetamaskButton = () => (
       content="Install Metamask"
     >
       <Button main size="xs" onClick={() => window.open("https://metamask.io/download.html", "_blank")}>
-        <Image p="4px" src="../../../public/icon.svg" alt="Metamask Icon" style={{ width: '40px', height: '40px' }} />
+        <Image p="4px" src="../../../public/metamaskicon.svg" alt="Metamask Icon" style={{ width: '40px', height: '40px' }} />
       </Button>
     </Tooltip>
 );
